@@ -1,0 +1,19 @@
+[package]
+name = "coordtransform"
+version = "0.1.0"
+edition = "2024"
+authors = ["Athan Xiao <athan.xiao@example.com>"]
+description = "Provide mutual conversions between Baidu Coordinate System (BD09), Mars Coordinate System (GCJ02), and WGS84 Coordinate System."
+license = "MIT"
+repository = "https://github.com/athxx/coordtransform-rs"
+keywords = ["coordinate", "transform", "gis", "map"]
+categories = ["science", "algorithms"]
+
+[dependencies]
+
+[dev-dependencies]
+criterion = "0.6.0"
+
+[[bench]]
+name = "coord_bench"
+harness = false
