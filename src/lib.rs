@@ -1,60 +1,68 @@
 //! # coordtransform
 //!
 //! 提供百度坐标系(BD09)、火星坐标系(国测局坐标系、GCJ02)、WGS84坐标系的相互转换，基于 Rust 语言，无特殊依赖。
+//! Provides mutual conversion between Baidu Coordinate System (BD09), Mars Coordinate System (GCJ02), and WGS84 Coordinate System, implemented in Rust with no special dependencies.
 //!
 //! ## 坐标系说明
+//! ## Coordinate System Description
 //!
 //! - **WGS84坐标系**：即地球坐标系，国际上通用的坐标系
+//! - **WGS84 Coordinate System**: The Earth coordinate system, commonly used internationally.
 //! - **GCJ02坐标系**：即火星坐标系，WGS84坐标系经加密后的坐标系。Google Maps，高德在用
+//! - **GCJ02 Coordinate System**: Also known as the Mars coordinate system, an encrypted version of the WGS84 coordinate system. Used by Google Maps and Amap.
 //! - **BD09坐标系**：即百度坐标系，GCJ02坐标系经加密后的坐标系
+//! - **BD09 Coordinate System**: Also known as the Baidu coordinate system, an encrypted version of the GCJ02 coordinate system.
 //!
-//! ## 使用示例
+//! ## Usage Example 使用示例
 //!
 //! ```rust
 //! use coordtransform::*;
 //!
-//! // 百度坐标系 -> 火星坐标系
+//! // bd09百度坐标系 -> gcj02火星坐标系
 //! let (lon, lat) = bd09_to_gcj02(116.404, 39.915);
 //!
-//! // 火星坐标系 -> 百度坐标系  
+//! // bd09火星坐标系 -> gcj02百度坐标系
 //! let (lon, lat) = gcj02_to_bd09(116.404, 39.915);
 //!
-//! // WGS84坐标系 -> 火星坐标系
+//! // WGS84坐标系 -> gcj02火星坐标系
 //! let (lon, lat) = wgs84_to_gcj02(116.404, 39.915);
 //!
-//! // 火星坐标系 -> WGS84坐标系
+//! // gcj02火星坐标系 -> WGS84坐标系
 //! let (lon, lat) = gcj02_to_wgs84(116.404, 39.915);
 //!
-//! // 百度坐标系 -> WGS84坐标系
+//! // bd09百度坐标系 -> WGS84坐标系
 //! let (lon, lat) = bd09_to_wgs84(116.404, 39.915);
 //!
-//! // WGS84坐标系 -> 百度坐标系
+//! // WGS84坐标系 -> bd09百度坐标系
 //! let (lon, lat) = wgs84_to_bd09(116.404, 39.915);
 //! ```
 
 use std::f64::consts::PI;
 
-/// X_PI 常量
+/// X_PI constant 常量
+///
 const X_PI: f64 = PI * 3000.0 / 180.0;
 
-/// 偏移量常量
+/// Offset constant 偏移量常量
 const OFFSET: f64 = 0.00669342162296594323;
 
 /// 地球长半轴
+/// Earth's semi-major axis
 const AXIS: f64 = 6378245.0;
 
 /// 百度坐标系 -> 火星坐标系
+/// Baidu Coordinate System -> Mars Coordinate System
 ///
-/// # 参数
+/// # Parameters 参数
 ///
-/// * `lon` - 经度
-/// * `lat` - 纬度
+/// * `lon` - 经度 Longitude
+/// * `lat` - 纬度 Latitude
 ///
-/// # 返回值
+/// # 返回值 Return Value
 ///
-/// 返回转换后的 (经度, 纬度) 元组
+/// 返回转换后的 (经度, 纬度) 元组 Returns a tuple of (longitude, latitude) after conversion
 ///
-/// # 示例
+/// # 示例 Example
 ///
 /// ```rust
 /// use coordtransform::bd09_to_gcj02;
@@ -74,18 +82,18 @@ pub fn bd09_to_gcj02(lon: f64, lat: f64) -> (f64, f64) {
     (g_lon, g_lat)
 }
 
-/// 火星坐标系 -> 百度坐标系
+/// gcj02火星坐标系 -> bd09百度坐标系
 ///
-/// # 参数
+/// # Parameters 参数
 ///
-/// * `lon` - 经度
-/// * `lat` - 纬度
+/// * `lon` - 经度 Longitude
+/// * `lat` - 纬度 Latitude
 ///
-/// # 返回值
+/// # 返回值 Return Value
 ///
-/// 返回转换后的 (经度, 纬度) 元组
+/// 返回转换后的 (经度, 纬度) 元组 Returns a tuple of (longitude, latitude) after conversion
 ///
-/// # 示例
+/// # 示例 Example
 ///
 /// ```rust
 /// use coordtransform::gcj02_to_bd09;
@@ -103,17 +111,18 @@ pub fn gcj02_to_bd09(lon: f64, lat: f64) -> (f64, f64) {
 }
 
 /// WGS84坐标系 -> 火星坐标系
+/// WGS84 Coordinate System -> Mars Coordinate System
 ///
-/// # 参数
+/// # Parameters 参数
 ///
-/// * `lon` - 经度
-/// * `lat` - 纬度
+/// * `lon` - 经度 Longitude
+/// * `lat` - 纬度 Latitude
 ///
-/// # 返回值
+/// # 返回值 Return Value
 ///
-/// 返回转换后的 (经度, 纬度) 元组
+/// 返回转换后的 (经度, 纬度) 元组 Returns a tuple of (longitude, latitude) after conversion
 ///
-/// # 示例
+/// # 示例 Example
 ///
 /// ```rust
 /// use coordtransform::wgs84_to_gcj02;
@@ -128,18 +137,18 @@ pub fn wgs84_to_gcj02(lon: f64, lat: f64) -> (f64, f64) {
     delta(lon, lat)
 }
 
-/// 火星坐标系 -> WGS84坐标系
+/// gcj02火星坐标系 -> WGS84坐标系
 ///
-/// # 参数
+/// # Parameters 参数
 ///
-/// * `lon` - 经度
-/// * `lat` - 纬度
+/// * `lon` - 经度 Longitude
+/// * `lat` - 纬度 Latitude
 ///
-/// # 返回值
+/// # Return Value 返回值
 ///
-/// 返回转换后的 (经度, 纬度) 元组
+/// 返回转换后的 (经度, 纬度) 元组 Returns a tuple of (longitude, latitude) after conversion
 ///
-/// # 示例
+/// # 示例 Example
 ///
 /// ```rust
 /// use coordtransform::gcj02_to_wgs84;
@@ -157,17 +166,18 @@ pub fn gcj02_to_wgs84(lon: f64, lat: f64) -> (f64, f64) {
 }
 
 /// 百度坐标系 -> WGS84坐标系
+/// Baidu Coordinate System -> WGS84 Coordinate System
 ///
-/// # 参数
+/// # Parameters 参数
 ///
-/// * `lon` - 经度
-/// * `lat` - 纬度
+/// * `lon` - 经度 Longitude
+/// * `lat` - 纬度 Latitude
 ///
-/// # 返回值
+/// # Return Value 返回值
 ///
-/// 返回转换后的 (经度, 纬度) 元组
+/// 返回转换后的 (经度, 纬度) 元组 Returns a tuple of (longitude, latitude) after conversion
 ///
-/// # 示例
+/// # 示例 Example
 ///
 /// ```rust
 /// use coordtransform::bd09_to_wgs84;
@@ -180,17 +190,18 @@ pub fn bd09_to_wgs84(lon: f64, lat: f64) -> (f64, f64) {
 }
 
 /// WGS84坐标系 -> 百度坐标系
+/// WGS84 Coordinate System -> Baidu Coordinate System
 ///
-/// # 参数
+/// # Parameters 参数
 ///
-/// * `lon` - 经度
-/// * `lat` - 纬度
+/// * `lon` - 经度 Longitude
+/// * `lat` - 纬度 Latitude
 ///
-/// # 返回值
+/// # Return Value 返回值
 ///
-/// 返回转换后的 (经度, 纬度) 元组
+/// 返回转换后的 (经度, 纬度) 元组 Returns a tuple of (longitude, latitude) after conversion
 ///
-/// # 示例
+/// # Example 示例
 ///
 /// ```rust
 /// use coordtransform::wgs84_to_bd09;
@@ -202,7 +213,7 @@ pub fn wgs84_to_bd09(lon: f64, lat: f64) -> (f64, f64) {
     gcj02_to_bd09(lon, lat)
 }
 
-/// 计算坐标偏移量
+/// Calculate coordinate offset 计算坐标偏移量
 fn delta(lon: f64, lat: f64) -> (f64, f64) {
     let (dlat, dlon) = transform(lon - 105.0, lat - 35.0);
     let radlat = lat / 180.0 * PI;
@@ -219,7 +230,7 @@ fn delta(lon: f64, lat: f64) -> (f64, f64) {
     (mg_lon, mg_lat)
 }
 
-/// 坐标变换函数
+/// Coordinate transformation function 坐标变换函数
 fn transform(lon: f64, lat: f64) -> (f64, f64) {
     let lonlat = lon * lat;
     let abs_x = lon.abs().sqrt();
@@ -244,7 +255,7 @@ fn transform(lon: f64, lat: f64) -> (f64, f64) {
     (x, y)
 }
 
-/// 判断坐标是否在中国境外
+/// Determine whether the coordinates are outside of China 判断坐标是否在中国境外
 fn is_out_of_china(lon: f64, lat: f64) -> bool {
     !(lon > 72.004 && lon < 135.05 && lat > 3.86 && lat < 53.55)
 }
@@ -298,6 +309,7 @@ mod tests {
     #[test]
     fn test_out_of_china() {
         // 测试中国境外坐标，应该直接返回原坐标
+        // Test coordinates outside of China, should directly return the original coordinates
         let (lon, lat) = wgs84_to_gcj02(0.0, 0.0);
         assert_eq!(lon, 0.0);
         assert_eq!(lat, 0.0);
