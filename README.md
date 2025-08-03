@@ -18,6 +18,8 @@ This is the Rust port of the [Go version](https://github.com/qichengzx/coordtran
 - **GCJ02 Coordinate System**: Also known as the Mars coordinate system, an encrypted version of the WGS84 coordinate system. Used by Google Maps and Amap.
 - **BD09坐标系**：即百度坐标系，GCJ02坐标系经加密后的坐标系
 - **BD09 Coordinate System**: Also known as the Baidu coordinate system, an encrypted version of the GCJ02 coordinate system.
+- **EPSG:3857坐标系**：即Web墨卡托投影坐标系，广泛用于Web地图服务如Google Maps、OpenStreetMap等
+- **EPSG:3857 Coordinate System**: Also known as Web Mercator projection, widely used in web mapping services like Google Maps and OpenStreetMap.
 
 ## 功能特性 Features
 
@@ -27,6 +29,12 @@ This is the Rust port of the [Go version](https://github.com/qichengzx/coordtran
 - [x] 火星坐标系 -> WGS84坐标系 (`gcj02_to_wgs84`)
 - [x] WGS84坐标系 -> 百度坐标系 (`wgs84_to_bd09`)
 - [x] 百度坐标系 -> WGS84坐标系 (`bd09_to_wgs84`)
+- [x] WGS84坐标系 -> EPSG:3857坐标系 (`wgs84_to_epsg3857`)
+- [x] EPSG:3857坐标系 -> WGS84坐标系 (`epsg3857_to_wgs84`)
+- [x] GCJ02坐标系 -> EPSG:3857坐标系 (`gcj02_to_epsg3857`)
+- [x] EPSG:3857坐标系 -> GCJ02坐标系 (`epsg3857_to_gcj02`)
+- [x] BD09坐标系 -> EPSG:3857坐标系 (`bd09_to_epsg3857`)
+- [x] EPSG:3857坐标系 -> BD09坐标系 (`epsg3857_to_bd09`)
 
 ## 安装 Installation
 
@@ -34,7 +42,7 @@ This is the Rust port of the [Go version](https://github.com/qichengzx/coordtran
 
 ```toml
 [dependencies]
-coordtransform = "0.1.0"
+coordtransform = "0.3.0"
 ```
 
 ## 快速开始 Quick Start
@@ -66,6 +74,22 @@ fn main() {
     // WGS84坐标系 -> 百度坐标系
     let (lon, lat) = wgs84_to_bd09(116.404, 39.915);
     println!("WGS84 to BD09: ({}, {})", lon, lat);
+
+    // WGS84坐标系 -> EPSG:3857坐标系 (Web墨卡托投影)
+    let (x, y) = wgs84_to_epsg3857(116.404, 39.915);
+    println!("WGS84 to EPSG:3857: ({}, {})", x, y);
+
+    // EPSG:3857坐标系 -> WGS84坐标系
+    let (lon, lat) = epsg3857_to_wgs84(12958752.0, 4825923.0);
+    println!("EPSG:3857 to WGS84: ({}, {})", lon, lat);
+
+    // GCJ02坐标系 -> EPSG:3857坐标系
+    let (x, y) = gcj02_to_epsg3857(116.404, 39.915);
+    println!("GCJ02 to EPSG:3857: ({}, {})", x, y);
+
+    // BD09坐标系 -> EPSG:3857坐标系
+    let (x, y) = bd09_to_epsg3857(116.404, 39.915);
+    println!("BD09 to EPSG:3857: ({}, {})", x, y);
 }
 ```
 

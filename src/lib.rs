@@ -12,6 +12,8 @@
 //! - **GCJ02 Coordinate System**: Also known as the Mars coordinate system, an encrypted version of the WGS84 coordinate system. Used by Google Maps and Amap.
 //! - **BD09坐标系**：即百度坐标系，GCJ02坐标系经加密后的坐标系
 //! - **BD09 Coordinate System**: Also known as the Baidu coordinate system, an encrypted version of the GCJ02 coordinate system.
+//! - **EPSG:3857坐标系**：即Web墨卡托投影坐标系，广泛用于Web地图服务
+//! - **EPSG:3857 Coordinate System**: Also known as Web Mercator projection, widely used in web mapping services.
 //!
 //! ## Usage Example 使用示例
 //!
@@ -35,6 +37,12 @@
 //!
 //! // WGS84坐标系 -> bd09百度坐标系
 //! let (lon, lat) = wgs84_to_bd09(116.404, 39.915);
+//!
+//! // WGS84坐标系 -> EPSG:3857坐标系
+//! let (x, y) = wgs84_to_epsg3857(116.404, 39.915);
+//!
+//! // EPSG:3857坐标系 -> WGS84坐标系
+//! let (lon, lat) = epsg3857_to_wgs84(12958752.0, 4825923.0);
 //! ```
 
 use std::f64::consts::PI;
@@ -49,6 +57,17 @@ const OFFSET: f64 = 0.00669342162296594323;
 /// 地球长半轴
 /// Earth's semi-major axis
 const AXIS: f64 = 6378245.0;
+
+/// EPSG:3857 Web墨卡托投影相关常量
+/// EPSG:3857 Web Mercator projection constants
+
+/// 地球半径 (米)
+/// Earth radius in meters
+const EARTH_RADIUS: f64 = 6378137.0;
+
+/// 最大纬度 (度)
+/// Maximum latitude in degrees
+const MAX_LATITUDE: f64 = 85.0511287798;
 
 /// 百度坐标系 -> 火星坐标系
 /// Baidu Coordinate System -> Mars Coordinate System
@@ -255,6 +274,158 @@ fn transform(lon: f64, lat: f64) -> (f64, f64) {
     (x, y)
 }
 
+/// WGS84坐标系 -> EPSG:3857坐标系 (Web墨卡托投影)
+/// WGS84 Coordinate System -> EPSG:3857 Coordinate System (Web Mercator Projection)
+///
+/// # Parameters 参数
+///
+/// * `lon` - 经度 Longitude (度 degrees)
+/// * `lat` - 纬度 Latitude (度 degrees)
+///
+/// # Return Value 返回值
+///
+/// 返回转换后的 (X, Y) 元组 (米) Returns a tuple of (X, Y) in meters after conversion
+///
+/// # Example 示例
+///
+/// ```rust
+/// use coordtransform::wgs84_to_epsg3857;
+///
+/// let (x, y) = wgs84_to_epsg3857(116.404, 39.915);
+/// ```
+pub fn wgs84_to_epsg3857(lon: f64, lat: f64) -> (f64, f64) {
+    // 限制纬度范围
+    // Clamp latitude to valid range
+    let lat = lat.max(-MAX_LATITUDE).min(MAX_LATITUDE);
+    
+    let x = lon * PI / 180.0 * EARTH_RADIUS;
+    let y = ((PI / 4.0 + lat * PI / 360.0).tan()).ln() * EARTH_RADIUS;
+    
+    (x, y)
+}
+
+/// EPSG:3857坐标系 -> WGS84坐标系 (Web墨卡托投影)
+/// EPSG:3857 Coordinate System -> WGS84 Coordinate System (Web Mercator Projection)
+///
+/// # Parameters 参数
+///
+/// * `x` - X坐标 X coordinate (米 meters)
+/// * `y` - Y坐标 Y coordinate (米 meters)
+///
+/// # Return Value 返回值
+///
+/// 返回转换后的 (经度, 纬度) 元组 (度) Returns a tuple of (longitude, latitude) in degrees after conversion
+///
+/// # Example 示例
+///
+/// ```rust
+/// use coordtransform::epsg3857_to_wgs84;
+///
+/// let (lon, lat) = epsg3857_to_wgs84(12958752.0, 4825923.0);
+/// ```
+pub fn epsg3857_to_wgs84(x: f64, y: f64) -> (f64, f64) {
+    let lon = x / EARTH_RADIUS * 180.0 / PI;
+    let lat = (2.0 * (y / EARTH_RADIUS).exp().atan() - PI / 2.0) * 180.0 / PI;
+    
+    (lon, lat)
+}
+
+/// GCJ02坐标系 -> EPSG:3857坐标系
+/// GCJ02 Coordinate System -> EPSG:3857 Coordinate System
+///
+/// # Parameters 参数
+///
+/// * `lon` - 经度 Longitude (度 degrees)
+/// * `lat` - 纬度 Latitude (度 degrees)
+///
+/// # Return Value 返回值
+///
+/// 返回转换后的 (X, Y) 元组 (米) Returns a tuple of (X, Y) in meters after conversion
+///
+/// # Example 示例
+///
+/// ```rust
+/// use coordtransform::gcj02_to_epsg3857;
+///
+/// let (x, y) = gcj02_to_epsg3857(116.404, 39.915);
+/// ```
+pub fn gcj02_to_epsg3857(lon: f64, lat: f64) -> (f64, f64) {
+    let (wgs_lon, wgs_lat) = gcj02_to_wgs84(lon, lat);
+    wgs84_to_epsg3857(wgs_lon, wgs_lat)
+}
+
+/// EPSG:3857坐标系 -> GCJ02坐标系
+/// EPSG:3857 Coordinate System -> GCJ02 Coordinate System
+///
+/// # Parameters 参数
+///
+/// * `x` - X坐标 X coordinate (米 meters)
+/// * `y` - Y坐标 Y coordinate (米 meters)
+///
+/// # Return Value 返回值
+///
+/// 返回转换后的 (经度, 纬度) 元组 (度) Returns a tuple of (longitude, latitude) in degrees after conversion
+///
+/// # Example 示例
+///
+/// ```rust
+/// use coordtransform::epsg3857_to_gcj02;
+///
+/// let (lon, lat) = epsg3857_to_gcj02(12958752.0, 4825923.0);
+/// ```
+pub fn epsg3857_to_gcj02(x: f64, y: f64) -> (f64, f64) {
+    let (wgs_lon, wgs_lat) = epsg3857_to_wgs84(x, y);
+    wgs84_to_gcj02(wgs_lon, wgs_lat)
+}
+
+/// BD09坐标系 -> EPSG:3857坐标系
+/// BD09 Coordinate System -> EPSG:3857 Coordinate System
+///
+/// # Parameters 参数
+///
+/// * `lon` - 经度 Longitude (度 degrees)
+/// * `lat` - 纬度 Latitude (度 degrees)
+///
+/// # Return Value 返回值
+///
+/// 返回转换后的 (X, Y) 元组 (米) Returns a tuple of (X, Y) in meters after conversion
+///
+/// # Example 示例
+///
+/// ```rust
+/// use coordtransform::bd09_to_epsg3857;
+///
+/// let (x, y) = bd09_to_epsg3857(116.404, 39.915);
+/// ```
+pub fn bd09_to_epsg3857(lon: f64, lat: f64) -> (f64, f64) {
+    let (wgs_lon, wgs_lat) = bd09_to_wgs84(lon, lat);
+    wgs84_to_epsg3857(wgs_lon, wgs_lat)
+}
+
+/// EPSG:3857坐标系 -> BD09坐标系
+/// EPSG:3857 Coordinate System -> BD09 Coordinate System
+///
+/// # Parameters 参数
+///
+/// * `x` - X坐标 X coordinate (米 meters)
+/// * `y` - Y坐标 Y coordinate (米 meters)
+///
+/// # Return Value 返回值
+///
+/// 返回转换后的 (经度, 纬度) 元组 (度) Returns a tuple of (longitude, latitude) in degrees after conversion
+///
+/// # Example 示例
+///
+/// ```rust
+/// use coordtransform::epsg3857_to_bd09;
+///
+/// let (lon, lat) = epsg3857_to_bd09(12958752.0, 4825923.0);
+/// ```
+pub fn epsg3857_to_bd09(x: f64, y: f64) -> (f64, f64) {
+    let (wgs_lon, wgs_lat) = epsg3857_to_wgs84(x, y);
+    wgs84_to_bd09(wgs_lon, wgs_lat)
+}
+
 /// Determine whether the coordinates are outside of China 判断坐标是否在中国境外
 fn is_out_of_china(lon: f64, lat: f64) -> bool {
     !(lon > 72.004 && lon < 135.05 && lat > 3.86 && lat < 53.55)
@@ -313,5 +484,76 @@ mod tests {
         let (lon, lat) = wgs84_to_gcj02(0.0, 0.0);
         assert_eq!(lon, 0.0);
         assert_eq!(lat, 0.0);
+    }
+
+    #[test]
+    fn test_wgs84_to_epsg3857() {
+        let (x, y) = wgs84_to_epsg3857(116.404, 39.915);
+        assert!((x - 12958034.01).abs() < 1.0);
+        assert!((y - 4853597.99).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_epsg3857_to_wgs84() {
+        let (lon, lat) = epsg3857_to_wgs84(12958034.01, 4853597.99);
+        assert!((lon - 116.404).abs() < 1e-6);
+        assert!((lat - 39.915).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_gcj02_to_epsg3857() {
+        let (x, y) = gcj02_to_epsg3857(116.404, 39.915);
+        // 先转换为WGS84再转换为EPSG3857
+        let (wgs_lon, wgs_lat) = gcj02_to_wgs84(116.404, 39.915);
+        let (expected_x, expected_y) = wgs84_to_epsg3857(wgs_lon, wgs_lat);
+        assert!((x - expected_x).abs() < 1e-10);
+        assert!((y - expected_y).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_epsg3857_to_gcj02() {
+        let (lon, lat) = epsg3857_to_gcj02(12958752.668618806, 4825923.036067264);
+        // 先转换为WGS84再转换为GCJ02
+        let (wgs_lon, wgs_lat) = epsg3857_to_wgs84(12958752.668618806, 4825923.036067264);
+        let (expected_lon, expected_lat) = wgs84_to_gcj02(wgs_lon, wgs_lat);
+        assert!((lon - expected_lon).abs() < 1e-10);
+        assert!((lat - expected_lat).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bd09_to_epsg3857() {
+        let (x, y) = bd09_to_epsg3857(116.404, 39.915);
+        // 先转换为WGS84再转换为EPSG3857
+        let (wgs_lon, wgs_lat) = bd09_to_wgs84(116.404, 39.915);
+        let (expected_x, expected_y) = wgs84_to_epsg3857(wgs_lon, wgs_lat);
+        assert!((x - expected_x).abs() < 1e-10);
+        assert!((y - expected_y).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_epsg3857_to_bd09() {
+        let (lon, lat) = epsg3857_to_bd09(12958752.668618806, 4825923.036067264);
+        // 先转换为WGS84再转换为BD09
+        let (wgs_lon, wgs_lat) = epsg3857_to_wgs84(12958752.668618806, 4825923.036067264);
+        let (expected_lon, expected_lat) = wgs84_to_bd09(wgs_lon, wgs_lat);
+        assert!((lon - expected_lon).abs() < 1e-10);
+        assert!((lat - expected_lat).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_epsg3857_edge_cases() {
+        // 测试极限纬度
+        // Test edge case latitudes
+        let (x, y) = wgs84_to_epsg3857(0.0, 85.0511287798);
+        let (lon, lat) = epsg3857_to_wgs84(x, y);
+        assert!((lon - 0.0).abs() < 1e-10);
+        assert!((lat - 85.0511287798).abs() < 1e-6);
+
+        // 测试负极限纬度
+        // Test negative edge case latitude
+        let (x, y) = wgs84_to_epsg3857(0.0, -85.0511287798);
+        let (lon, lat) = epsg3857_to_wgs84(x, y);
+        assert!((lon - 0.0).abs() < 1e-10);
+        assert!((lat - (-85.0511287798)).abs() < 1e-6);
     }
 }
